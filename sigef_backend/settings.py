@@ -29,6 +29,7 @@ ALLOWED_HOSTS = ['0.0.0.0', 'localhost']
 # Application definition
 
 INSTALLED_APPS = [
+    'user_management',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -37,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'elections',
-    'user_management'
+
 ]
 
 MIDDLEWARE = [
@@ -86,7 +87,7 @@ DATABASES = {
         'PORT': config('POSTGRES_PORT', default='', cast=int),
     }
 }
-
+AUTH_USER_MODEL = 'user_management.CustomUser'
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 

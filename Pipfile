@@ -9,6 +9,7 @@ psycopg2-binary = "*"
 python-decouple = "*"
 config = "*"
 djangorestframework = "*"
+faker = "*"
 
 [dev-packages]
 
