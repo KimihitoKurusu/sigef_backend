@@ -28,6 +28,7 @@ ALLOWED_HOSTS = ['0.0.0.0', 'localhost']
 
 # Application definition
 
+
 INSTALLED_APPS = [
     'user_management',
     'django.contrib.admin',
@@ -37,10 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_yasg',
+    'rest_framework_simplejwt',
     'elections',
 
 ]
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -90,6 +92,12 @@ DATABASES = {
 AUTH_USER_MODEL = 'user_management.CustomUser'
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
