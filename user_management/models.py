@@ -52,7 +52,7 @@ class UserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    ci = models.OneToOneField(Person, on_delete=models.CASCADE, null=True, blank=True, editable=True)
+    person = models.OneToOneField(Person, on_delete=models.CASCADE, null=True, blank=True, editable=True)
     username = models.CharField('Nombre de Usuario', max_length=255, unique=True)
     date_joined = models.DateTimeField(default=timezone.now)
     is_staff = models.BooleanField(

@@ -10,6 +10,8 @@ python-decouple = "*"
 config = "*"
 djangorestframework = "*"
 faker = "*"
+djangorestframework-simplejwt = "*"
+drf-yasg = "*"
 
 [dev-packages]
 
