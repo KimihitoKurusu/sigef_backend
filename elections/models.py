@@ -7,16 +7,23 @@ from django.utils import timezone
 
 class Institution(models.Model):
     name = models.CharField(max_length=255)
+    def __str__(self):
+        return self.name
+    
 
 
 class Campus(models.Model):
     institution_id = models.ForeignKey(Institution, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    def __str__(self):
+        return self.name
 
 
 class Faculty(models.Model):
     campus_id = models.ForeignKey(Campus, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    def __str__(self):
+        return self.name
 
 
 class Person(models.Model):
@@ -24,6 +31,8 @@ class Person(models.Model):
     name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     faculty_id = models.ForeignKey(Faculty, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.name + ' ' + self.last_name
 
 
 class Election(models.Model):
@@ -37,6 +46,16 @@ class Election(models.Model):
     council_size = models.IntegerField(validators=[MinValueValidator(3)])
     voting_date = models.DateTimeField(validators=[MinValueValidator(timezone.now)])
     is_active = models.BooleanField(default=False)
+    def __str__(self):
+        location = ''
+        if (self.type == 'institution'):
+            location = Institution.get(self.location_id)
+        if (self.type == 'campus'):
+            location = Campus.get(self.location_id)
+        if (self.type == 'faculty'):
+            location = Faculty.get(self.location_id)
+
+        return 'Elecciones de ' + self.type + ' en ' + location
 
 
 class Candidate(Person):
@@ -55,6 +74,9 @@ class Candidate(Person):
     staff_votes = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     president_votes = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     position = models.CharField(max_length=255, blank=True, null=True)
+    def __str__(self):
+        return self.name + ' ' + self.last_name
+
 
 
 class ElectorRegistry(models.Model):
@@ -66,3 +88,7 @@ class ElectorRegistry(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['ci', 'election_id'], name='unique_elector_registry')
         ]
+
+    def __str__(self):
+        return Person.get(self.ci).__str__() + ' ' + Election.get(self.election_id).__str__()
+
