@@ -2,6 +2,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,windows,macos,python,django,jetbrains+all
 
 ### Django ###
+Makefile
 *.log
 *.pot
 *.pyc
