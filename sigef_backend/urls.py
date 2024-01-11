@@ -3,15 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from elections.views import (
-    InstitutionViewSet,
-    CampusViewSet,
-    FacultyViewSet,
-    PersonViewSet,
-    ElectionViewSet,
-    CandidateViewSet,
-    ElectorRegistryViewSet,
-)
+from elections.views import *
 from user_management.views import CustomUserViewSet, CustomTokenObtainPairView
 
 # Create a router and register your viewsets with it.
@@ -41,7 +33,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
-    path('api/token/', CustomTokenObtainPairView.as_view(), name='token'),  # Include Token view separately
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
