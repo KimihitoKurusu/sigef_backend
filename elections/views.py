@@ -1,6 +1,5 @@
 from rest_framework import viewsets
-
-from .models import *
+from rest_framework.permissions import IsAuthenticated
 from .serializers import *
 
 
@@ -27,12 +26,12 @@ class PersonViewSet(viewsets.ModelViewSet):
 class ElectionViewSet(viewsets.ModelViewSet):
     queryset = Election.objects.all()
     serializer_class = ElectionSerializer
-
+    permission_classes = [IsElectionManagerOrReadOnly]
 
 class CandidateViewSet(viewsets.ModelViewSet):
     queryset = Candidate.objects.all()
     serializer_class = CandidateSerializer
-
+    permission_classes = [IsCandidateManagerOrReadOnly]
 
 class ElectorRegistryViewSet(viewsets.ModelViewSet):
     queryset = ElectorRegistry.objects.all()

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import *
+from .permissions import IsCandidateManagerOrReadOnly, IsElectionManagerOrReadOnly
 
 
 class InstitutionSerializer(serializers.ModelSerializer):
@@ -32,13 +33,16 @@ class ElectionSerializer(serializers.ModelSerializer):
         model = Election
         fields = '__all__'
 
+    permission_classes = [IsElectionManagerOrReadOnly]
+
 
 class CandidateSerializer(serializers.ModelSerializer):
-   person = PersonSerializer()
+    class Meta:
+        model = Candidate
+        fields = ['ci', 'name', 'last_name', 'faculty_id', 'election_id', 'biography', 'who_added', 'staff_votes',
+                  'president_votes', 'position']
 
-   class Meta:
-       model = Candidate
-       fields = '__all__'
+    permission_classes = [IsCandidateManagerOrReadOnly]
 
 
 class ElectorRegistrySerializer(serializers.ModelSerializer):

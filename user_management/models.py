@@ -78,4 +78,4 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         db_table = 'custom_user'
 
     def __str__(self):
-        return f'{self.username} ({self.ci})'
+        return f'{self.username} ({self.person.__str__()})'
