@@ -38,7 +38,7 @@ class CandidateSerializer(serializers.ModelSerializer):
 
    class Meta:
        model = Candidate
-       fields = ['person'] + [field.name for field in Candidate._meta.fields]
+       fields = '__all__'
 
 
 class ElectorRegistrySerializer(serializers.ModelSerializer):
