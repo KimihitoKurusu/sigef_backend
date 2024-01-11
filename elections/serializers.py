@@ -34,9 +34,11 @@ class ElectionSerializer(serializers.ModelSerializer):
 
 
 class CandidateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Candidate
-        fields = '__all__'
+   person = PersonSerializer()
+
+   class Meta:
+       model = Candidate
+       fields = ['person'] + [field.name for field in Candidate._meta.fields]
 
 
 class ElectorRegistrySerializer(serializers.ModelSerializer):
