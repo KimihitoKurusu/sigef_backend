@@ -19,9 +19,10 @@ class CustomUserSerializer(serializers.ModelSerializer):
         person_data = validated_data.pop('person', None)
 
         # Create Person if 'ci' data is provided
-        if person_data:
+        if not Person.objects.get(ci=person_data.ci):
             person = Person.objects.create(**person_data)
             validated_data['person'] = person
+            
 
         return CustomUser.objects.create_user(**validated_data)
 

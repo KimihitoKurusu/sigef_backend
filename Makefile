@@ -29,7 +29,8 @@ migrate:
 	 docker-compose -f docker-compose.local.yml run --rm web python manage.py migrate
 
 superuser:
-	pipenv run python manage.py createsuperuser
+	docker-compose -f docker-compose.local.yml run --rm web python manage.py createsuperuser
+	
 clear-volumes:
 	 docker-compose -f docker-compose.local.yml down -v
 
