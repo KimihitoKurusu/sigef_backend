@@ -12,6 +12,8 @@ djangorestframework = "*"
 faker = "*"
 djangorestframework-simplejwt = "*"
 drf-yasg = "*"
+pytest-django = "*"
+pyjwt = "*"
 
 [dev-packages]
 

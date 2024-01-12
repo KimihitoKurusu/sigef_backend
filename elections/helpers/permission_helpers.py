@@ -1,3 +1,5 @@
+import jwt
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
@@ -32,3 +34,23 @@ def is_same_election_id(user_election_id, election_id_from_data, election_id_fro
         raise CustomAPIException("User does not have permission for this election")
 
     return True
+
+
+# TODO
+def verification_token(request):
+    token = request.headers.get('Authorization')
+    secret_key = 'tu_clave_secreta'
+
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=['HS256'])
+        # El payload ahora contiene la información que enviaste desde el frontend
+
+
+        # Realiza las operaciones necesarias con la información
+        # ...
+
+        return payload
+    except jwt.ExpiredSignatureError:
+        return JsonResponse({'error': 'Token expirado'}, status=401)
+    except jwt.InvalidTokenError:
+        return JsonResponse({'error': 'Token inválido'}, status=401)
