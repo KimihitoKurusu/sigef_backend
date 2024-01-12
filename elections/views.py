@@ -1,9 +1,8 @@
 from rest_framework import viewsets
 
 from .permissions import IsCandidateManagerOrReadOnly, IsElectionManagerOrReadOnly
-from .permissions import IsInstitutionManagerOrReadOnly, IsCampusManagerOrReadOnly
 from .permissions import IsFacultyManagerOrReadOnly
-
+from .permissions import IsInstitutionManagerOrReadOnly, IsCampusManagerOrReadOnly
 from .serializers import *
 
 
@@ -35,12 +34,13 @@ class ElectionViewSet(viewsets.ModelViewSet):
     serializer_class = ElectionSerializer
     permission_classes = [IsElectionManagerOrReadOnly]
 
+
 class CandidateViewSet(viewsets.ModelViewSet):
     queryset = Candidate.objects.all()
     serializer_class = CandidateSerializer
     permission_classes = [IsCandidateManagerOrReadOnly]
 
+
 class ElectorRegistryViewSet(viewsets.ModelViewSet):
     queryset = ElectorRegistry.objects.all()
     serializer_class = ElectorRegistrySerializer
-
