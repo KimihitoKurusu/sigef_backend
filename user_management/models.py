@@ -2,41 +2,26 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils import timezone
-from datetime import timedelta
-from faker import Faker
-import uuid
 
 from elections.models import Person, Election
-
-fake = Faker()
 
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
+
     # TODO: Recieve *param person object
     def _create_user(self, username, password, create_person=False, **extra_fields):
-        person = None
-        if create_person:
-            ci = fake.unique.random_number(11)
-            name = fake.first_name()
-            last_name = fake.last_name()
-
-            person = Person(ci=ci, name=name, last_name=last_name)
-            person.save()
-
-        user = self.model(username=username, person=person, **extra_fields)
+        user = self.model(username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_user(self, username=None, password=None, create_person=True, **extra_fields):
+    def create_user(self, username=None, password=None, create_person=False, **extra_fields):
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         password_aux = password
-        is_market_request = extra_fields.get('is_market_request', False)
-        if is_market_request and password is None:
+        if password is None:
             password_aux = self.make_random_password()
-        del extra_fields['is_market_request']
         return self._create_user(username, password=password_aux, create_person=create_person, **extra_fields)
 
     def create_superuser(self, username, password, create_person=False, **extra_fields):

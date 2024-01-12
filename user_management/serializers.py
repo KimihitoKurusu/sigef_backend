@@ -17,12 +17,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         person_data = validated_data.pop('person', None)
-
+        print(person_data)
         # Create Person if 'ci' data is provided
-        if not Person.objects.get(ci=person_data.ci):
+        if not Person.objects.filter(ci=person_data['ci']).exists():
             person = Person.objects.create(**person_data)
             validated_data['person'] = person
-            
 
         return CustomUser.objects.create_user(**validated_data)
 
