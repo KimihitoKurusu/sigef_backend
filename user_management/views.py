@@ -4,11 +4,13 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import CustomUser
 from .serializers import CustomUserSerializer
+from .permissions import IsUserManager
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+    permission_classes = [IsUserManager]
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
