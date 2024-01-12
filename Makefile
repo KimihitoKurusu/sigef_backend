@@ -42,3 +42,13 @@ managepy:
 
 pgadmin:
 	 docker-compose -f docker-compose.local.yml up pgadmin
+
+# Makefile
+
+test:
+	docker-compose -f docker-compose.test.yml -p sigef_backend_test run --rm web pytest $(arg)
+	docker-compose -f docker-compose.test.yml -p sigef_backend_test down
+
+test-fast:
+	docker-compose -f docker-compose.test.yml -p sigef_backend_test run --rm web pytest --no-migrations $(arg)
+
