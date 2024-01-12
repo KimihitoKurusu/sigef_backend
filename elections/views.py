@@ -1,21 +1,28 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+
+from .permissions import IsCandidateManagerOrReadOnly, IsElectionManagerOrReadOnly
+from .permissions import IsInstitutionManagerOrReadOnly, IsCampusManagerOrReadOnly
+from .permissions import IsFacultyManagerOrReadOnly
+
 from .serializers import *
 
 
 class InstitutionViewSet(viewsets.ModelViewSet):
     queryset = Institution.objects.all()
     serializer_class = InstitutionSerializer
+    permission_classes = [IsInstitutionManagerOrReadOnly]
 
 
 class CampusViewSet(viewsets.ModelViewSet):
     queryset = Campus.objects.all()
     serializer_class = CampusSerializer
+    permission_classes = [IsCampusManagerOrReadOnly]
 
 
 class FacultyViewSet(viewsets.ModelViewSet):
     queryset = Faculty.objects.all()
     serializer_class = FacultySerializer
+    permission_classes = [IsFacultyManagerOrReadOnly]
 
 
 class PersonViewSet(viewsets.ModelViewSet):
