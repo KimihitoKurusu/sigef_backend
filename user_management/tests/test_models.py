@@ -7,11 +7,15 @@ class UserManagerTests(TestCase):
         """
         Test creating a regular user.
         """
-
         user = get_user_model().objects.create_user(username='testuser', password='testpassword')
         self.assertEqual(user.username, 'testuser')
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
+
+        self.assertIsNotNone(get_user_model().objects.get(username='testuser'))
+
+        authenticated = self.client.login(username='testuser', password='testpassword')
+        self.assertTrue(authenticated)
 
     def test_create_superuser(self):
         """
@@ -21,6 +25,8 @@ class UserManagerTests(TestCase):
         self.assertEqual(admin_user.username, 'admin')
         self.assertTrue(admin_user.is_staff)
         self.assertTrue(admin_user.is_superuser)
+
+        self.assertIsNotNone(get_user_model().objects.get(username='admin'))
 
 
 class CustomUserTests(TestCase):
@@ -42,6 +48,8 @@ class CustomUserTests(TestCase):
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
 
+        self.assertEqual(user.person, self.person)
+
     def test_create_superuser_with_person_and_election(self):
         """
         Test creating a superuser with associated person and election.
@@ -51,3 +59,6 @@ class CustomUserTests(TestCase):
         self.assertEqual(admin_user.username, 'admin')
         self.assertTrue(admin_user.is_staff)
         self.assertTrue(admin_user.is_superuser)
+
+        self.assertIsNone(admin_user.person)
+        self.assertIsNone(admin_user.election_id)

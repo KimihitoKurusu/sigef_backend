@@ -11,7 +11,7 @@ setup:
 build:
 	 docker-compose -f docker-compose.local.yml build
 
-install:
+pipenv-install:
 	pipenv install
 
 down:
