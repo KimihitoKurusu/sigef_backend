@@ -12,15 +12,14 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'person', 'username', 'date_joined', 'is_staff', 'is_superuser', 'election_id')
-        read_only_fields = ('id', 'date_joined')
+        fields = ['id', 'person', 'username', 'date_joined', 'is_staff', 'is_superuser', 'election_id']
+        read_only_fields = ['id', 'date_joined']
 
     def create(self, validated_data):
         person_data = validated_data.pop('person', None)
-        print(person_data)
         # Create Person if 'ci' data is provided
         if not Person.objects.filter(ci=person_data['ci']).exists():
-            person = Person.objects.create(**person_data)
+            person = Person.objects.get(person_data.ci) | Person.objects.create(**person_data)
             validated_data['person'] = person
 
         return CustomUser.objects.create_user(**validated_data)
@@ -37,7 +36,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 instance.person.faculty_id = person_data.get('faculty_id', instance.person.faculty_id)
                 instance.person.save()
             else:
-                person = Person.objects.create(**person_data)
+                person = person = Person.objects.get(person_data.ci) | Person.objects.create(**person_data)
                 instance.person = person
 
         instance.username = validated_data.get('username', instance.username)

@@ -74,19 +74,21 @@ class IsElectionManagerOrReadOnly(IsElectionManager):
         return super().has_permission(request, view)
 
 
-class IsInstitutionManager(permissions.BasePermission):
+class IsSuperUser(permissions.BasePermission):
     """
-    Custom permission to only allow Superadmin managers to modify Institutions.
+    Custom Permission that only allow Superuser to manage things with this permission
+    This will be used for Institution, Campus and Faculty as that information is 
+    unlikely to change often enough to merit a view
     """
 
     def has_permission(self, request, view):
         user = request.user
         is_user_authenticated = user.is_authenticated
         is_superuser = user.is_superuser
-        return is_user_authenticated and is_superuser 
+        return is_user_authenticated and is_superuser
+    
 
-
-class IsInstitutionManagerOrReadOnly(IsInstitutionManager):
+class IsSuperUserOrReadOnly(IsSuperUser):
     """
     Custom permission to allow read-only access to unauthenticated users
     and full access to Superadmin.
@@ -98,50 +100,3 @@ class IsInstitutionManagerOrReadOnly(IsInstitutionManager):
             return True
         return super().has_permission(request, view)
 
-class IsCampusManager(permissions.BasePermission):
-    """
-    Custom permission to only allow Superadmin managers to modify Campuses.
-    """
-
-    def has_permission(self, request, view):
-        user = request.user
-        is_user_authenticated = user.is_authenticated
-        is_superuser = user.is_superuser
-        return is_user_authenticated and is_superuser 
-
-
-class IsCampusManagerOrReadOnly(IsCampusManager):
-    """
-    Custom permission to allow read-only access to unauthenticated users
-    and full access to Superadmin.
-    """
-
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            # Permitir acceso de solo lectura para métodos seguros (GET, HEAD, OPTIONS)
-            return True
-        return super().has_permission(request, view)
-
-class IsFacultyManager(permissions.BasePermission):
-    """
-    Custom permission to only allow Superadmin managers to modify Faculties.
-    """
-
-    def has_permission(self, request, view):
-        user = request.user
-        is_user_authenticated = user.is_authenticated
-        is_superuser = user.is_superuser
-        return is_user_authenticated and is_superuser 
-
-
-class IsFacultyManagerOrReadOnly(IsFacultyManager):
-    """
-    Custom permission to allow read-only access to unauthenticated users
-    and full access to Superadmin.
-    """
-
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            # Permitir acceso de solo lectura para métodos seguros (GET, HEAD, OPTIONS)
-            return True
-        return super().has_permission(request, view)
