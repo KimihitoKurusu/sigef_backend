@@ -1,5 +1,6 @@
 import json
 import unittest
+from datetime import timedelta
 from unittest.mock import MagicMock
 
 import jwt
@@ -126,192 +127,198 @@ class InstitutionViewSetTest(TestCase):
 
 
 class CampusViewSetTest(TestCase):
-   def setUp(self):
-       self.client = APIClient()
-       self.superadmin_user = get_user_model().objects.create_superuser(
-           username='admin', password='adminpassword'
-       )
-       self.institution = Institution.objects.create(name='Test Institution')
-       self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
+    def setUp(self):
+        self.client = APIClient()
+        self.superadmin_user = get_user_model().objects.create_superuser(
+            username='admin', password='adminpassword'
+        )
+        self.institution = Institution.objects.create(name='Test Institution')
+        self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
 
-   def test_list_campuses(self):
-       response = self.client.get('/api/elections/campuses/')
-       self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_list_campuses(self):
+        response = self.client.get('/api/elections/campuses/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-   def test_retrieve_campus(self):
-       response = self.client.get(f'/api/elections/campuses/{self.campus.id}/')
-       self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_retrieve_campus(self):
+        response = self.client.get(f'/api/elections/campuses/{self.campus.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-   def test_create_campus_as_superuser(self):
-       self.client.force_authenticate(user=self.superadmin_user)
-       data = {'name': 'New Campus', 'institution_id': self.institution.id}
-       response = self.client.post('/api/elections/campuses/', data)
-       self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_create_campus_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        data = {'name': 'New Campus', 'institution_id': self.institution.id}
+        response = self.client.post('/api/elections/campuses/', data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-   def test_create_campus_as_regular_user(self):
-       regular_user = get_user_model().objects.create_user(
-           username='user', password='userpassword'
-       )
-       self.client.force_authenticate(user=regular_user)
-       data = {'name': 'New Campus', 'institution_id': self.institution.id}
-       response = self.client.post('/api/elections/campuses/', data)
-       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_create_campus_as_regular_user(self):
+        regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword'
+        )
+        self.client.force_authenticate(user=regular_user)
+        data = {'name': 'New Campus', 'institution_id': self.institution.id}
+        response = self.client.post('/api/elections/campuses/', data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-   def test_update_campus_as_superuser(self):
-       self.client.force_authenticate(user=self.superadmin_user)
-       data = {'name': 'Updated Campus', 'institution_id': self.institution.id}
-       response = self.client.put(f'/api/elections/campuses/{self.campus.id}/', data)
-       self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_update_campus_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        data = {'name': 'Updated Campus', 'institution_id': self.institution.id}
+        response = self.client.put(f'/api/elections/campuses/{self.campus.id}/', data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-   def test_update_campus_as_regular_user(self):
-       regular_user = get_user_model().objects.create_user(
-           username='user', password='userpassword'
-       )
-       self.client.force_authenticate(user=regular_user)
-       data = {'name': 'Updated Campus', 'institution_id': self.institution.id}
-       response = self.client.put(f'/api/elections/campuses/{self.campus.id}/', data)
-       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_update_campus_as_regular_user(self):
+        regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword'
+        )
+        self.client.force_authenticate(user=regular_user)
+        data = {'name': 'Updated Campus', 'institution_id': self.institution.id}
+        response = self.client.put(f'/api/elections/campuses/{self.campus.id}/', data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-   def test_delete_campus_as_superuser(self):
-       self.client.force_authenticate(user=self.superadmin_user)
-       response = self.client.delete(f'/api/elections/campuses/{self.campus.id}/')
-       self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    def test_delete_campus_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        response = self.client.delete(f'/api/elections/campuses/{self.campus.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-   def test_delete_campus_as_regular_user(self):
-       regular_user = get_user_model().objects.create_user(
-           username='user', password='userpassword'
-       )
-       self.client.force_authenticate(user=regular_user)
-       response = self.client.delete(f'/api/elections/campuses/{self.campus.id}/')
-       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_delete_campus_as_regular_user(self):
+        regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword'
+        )
+        self.client.force_authenticate(user=regular_user)
+        response = self.client.delete(f'/api/elections/campuses/{self.campus.id}/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class FacultyViewSetTest(TestCase):
-  def setUp(self):
-      self.client = APIClient()
-      self.superadmin_user = get_user_model().objects.create_superuser(
-          username='admin', password='adminpassword'
-      )
-      self.institution = Institution.objects.create(name='Test Institution')
-      self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
-      self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
+    def setUp(self):
+        self.client = APIClient()
+        self.superadmin_user = get_user_model().objects.create_superuser(
+            username='admin', password='adminpassword'
+        )
+        self.institution = Institution.objects.create(name='Test Institution')
+        self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
+        self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
 
-  def test_list_faculties(self):
-      response = self.client.get('/api/elections/faculties/')
-      self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_list_faculties(self):
+        response = self.client.get('/api/elections/faculties/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-  def test_retrieve_faculty(self):
-      response = self.client.get(f'/api/elections/faculties/{self.faculty.id}/')
-      self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_retrieve_faculty(self):
+        response = self.client.get(f'/api/elections/faculties/{self.faculty.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-  def test_create_faculty_as_superuser(self):
-      self.client.force_authenticate(user=self.superadmin_user)
-      data = {'name': 'New Faculty', 'campus_id': self.campus.id}
-      response = self.client.post('/api/elections/faculties/', data)
-      self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_create_faculty_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        data = {'name': 'New Faculty', 'campus_id': self.campus.id}
+        response = self.client.post('/api/elections/faculties/', data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-  def test_create_faculty_as_regular_user(self):
-      regular_user = get_user_model().objects.create_user(
-          username='user', password='userpassword'
-      )
-      self.client.force_authenticate(user=regular_user)
-      data = {'name': 'New Faculty', 'campus_id': self.campus.id}
-      response = self.client.post('/api/elections/faculties/', data)
-      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_create_faculty_as_regular_user(self):
+        regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword'
+        )
+        self.client.force_authenticate(user=regular_user)
+        data = {'name': 'New Faculty', 'campus_id': self.campus.id}
+        response = self.client.post('/api/elections/faculties/', data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-  def test_update_faculty_as_superuser(self):
-      self.client.force_authenticate(user=self.superadmin_user)
-      data = {'name': 'Updated Faculty', 'campus_id': self.campus.id}
-      response = self.client.put(f'/api/elections/faculties/{self.faculty.id}/', data)
-      self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_update_faculty_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        data = {'name': 'Updated Faculty', 'campus_id': self.campus.id}
+        response = self.client.put(f'/api/elections/faculties/{self.faculty.id}/', data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-  def test_update_faculty_as_regular_user(self):
-      regular_user = get_user_model().objects.create_user(
-          username='user', password='userpassword'
-      )
-      self.client.force_authenticate(user=regular_user)
-      data = {'name': 'Updated Faculty', 'campus_id': self.campus.id}
-      response = self.client.put(f'/api/elections/faculties/{self.faculty.id}/', data)
-      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_update_faculty_as_regular_user(self):
+        regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword'
+        )
+        self.client.force_authenticate(user=regular_user)
+        data = {'name': 'Updated Faculty', 'campus_id': self.campus.id}
+        response = self.client.put(f'/api/elections/faculties/{self.faculty.id}/', data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-  def test_delete_faculty_as_superuser(self):
-      self.client.force_authenticate(user=self.superadmin_user)
-      response = self.client.delete(f'/api/elections/faculties/{self.faculty.id}/')
-      self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    def test_delete_faculty_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        response = self.client.delete(f'/api/elections/faculties/{self.faculty.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-  def test_delete_faculty_as_regular_user(self):
-      regular_user = get_user_model().objects.create_user(
-          username='user', password='userpassword'
-      )
-      self.client.force_authenticate(user=regular_user)
-      response = self.client.delete(f'/api/elections/faculties/{self.faculty.id}/')
-      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_delete_faculty_as_regular_user(self):
+        regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword'
+        )
+        self.client.force_authenticate(user=regular_user)
+        response = self.client.delete(f'/api/elections/faculties/{self.faculty.id}/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class PersonViewSetTest(TestCase):
- def setUp(self):
-     self.client = APIClient()
-     self.url = '/api/elections/people/'
-     self.superadmin_user = get_user_model().objects.create_superuser(
-         username='admin', password='adminpassword'
-     )
-     self.institution = Institution.objects.create(name='Test Institution')
-     self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
-     self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
-     self.person = Person.objects.create(ci='12345678901', name='Test', last_name='Person', faculty_id=self.faculty)
+    def setUp(self):
+        self.client = APIClient()
+        self.url = '/api/elections/people/'
+        self.superadmin_user = get_user_model().objects.create_superuser(
+            username='admin', password='adminpassword'
+        )
+        self.institution = Institution.objects.create(name='Test Institution')
+        self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
+        self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
+        self.person = Person.objects.create(ci='12345678901', name='Test', last_name='Person', faculty_id=self.faculty)
 
- def test_list_persons(self):
-     response = self.client.get(self.url)
-     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_list_persons(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
- def test_retrieve_person(self):
-     response = self.client.get(f'{self.url}{self.person.ci}/')
-     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_retrieve_person(self):
+        response = self.client.get(f'{self.url}{self.person.ci}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
- def test_create_person_as_superuser(self):
-     self.client.force_authenticate(user=self.superadmin_user)
-     data = {'ci': '12345678902', 'name': 'New', 'last_name': 'Person', 'faculty_id': self.faculty.id}
-     response = self.client.post(self.url, data)
-     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_create_person_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        data = {'ci': '12345678902', 'name': 'New', 'last_name': 'Person', 'faculty_id': self.faculty.id}
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
- def test_create_person_as_regular_user(self):
-     regular_user = get_user_model().objects.create_user(
-         username='user', password='userpassword'
-     )
-     self.client.force_authenticate(user=regular_user)
-     data = {'ci': '12345678902', 'name': 'New', 'last_name': 'Person', 'faculty_id': self.faculty.id}
-     response = self.client.post(self.url, data)
-     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_create_person_as_regular_user(self):
+        regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword'
+        )
+        self.client.force_authenticate(user=regular_user)
+        data = {'ci': '12345678902', 'name': 'New', 'last_name': 'Person', 'faculty_id': self.faculty.id}
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
- def test_update_person_as_superuser(self):
-     self.client.force_authenticate(user=self.superadmin_user)
-     data = {'name': 'Updated', 'last_name': 'Person', 'faculty_id': self.faculty.id}
-     response = self.client.put(f'{self.url}{self.person.ci}/', data)
-     print('fherwivgnhgvjoirewzhgvieroanhe', response)
-     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_update_person_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        data = {'name': 'Updated', 'last_name': 'Person', 'faculty_id': self.faculty.id}
+        response = self.client.put(f'{self.url}{self.person.ci}/', data)
+        print('fherwivgnhgvjoirewzhgvieroanhe', response)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
- def test_update_person_as_regular_user(self):
-     regular_user = get_user_model().objects.create_user(
-         username='user', password='userpassword'
-     )
-     self.client.force_authenticate(user=regular_user)
-     data = {'name': 'Updated', 'last_name': 'Person', 'faculty_id': self.faculty.id}
-     response = self.client.put(f'{self.url}{self.person.ci}/', data)
-     # self.assertEqual(response.status_code, status.HTTP_200_OK)
-     r =self.client.get(f'{self.url}{self.person.ci}')
-     print(r)
-     self.assertEqual(self.person.ci, r.body.get('ci'))
+    def test_update_person_as_regular_user(self):
+        regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword'
+        )
+        self.client.force_authenticate(user=regular_user)
 
- def test_delete_person_as_superuser(self):
-     self.client.force_authenticate(user=self.superadmin_user)
-     response = self.client.delete(f'{self.url}{self.person.ci}/')
-     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        data = {'name': 'Updated', 'last_name': 'Person', 'faculty_id': self.faculty.id}
+        response = self.client.put(f'{self.url}{self.person.ci}/', data)
 
- def test_delete_person_as_regular_user(self):
-     regular_user = get_user_model().objects.create_user( username='user', password='userpassword' ) 
-     self.client.force_authenticate(user=regular_user) 
-     response = self.client.delete(f'{self.url}{self.person.ci}/') 
-     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, 200)
+        self.person.refresh_from_db()
+        self.assertEqual(self.person.name, 'Updated')
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+        # Verificar el contenido de la respuesta (opcional)
+        self.assertEqual(response.json(), {'ci': self.person.ci, 'name': 'Updated', 'last_name': 'Person',
+                                           'faculty_id': self.faculty.id})
+
+    def test_delete_person_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        response = self.client.delete(f'{self.url}{self.person.ci}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_delete_person_as_regular_user(self):
+        regular_user = get_user_model().objects.create_user(username='user', password='userpassword')
+        self.client.force_authenticate(user=regular_user)
+        response = self.client.delete(f'{self.url}{self.person.ci}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
 class ElectionViewSetTest(TestCase):
@@ -320,19 +327,33 @@ class ElectionViewSetTest(TestCase):
         self.superadmin_user = get_user_model().objects.create_superuser(
             username='admin', password='adminpassword'
         )
-        self.election = Election.objects.create(name='Test Election')
+        self.institution = Institution.objects.create(name='Test Institution')
+        self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
+        self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
+        self.election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
+                                                voting_date=timezone.now(), is_active=False)
 
     def test_list_elections(self):
+        Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
+                                voting_date=timezone.now(), is_active=False)
         response = self.client.get('/api/elections/elections/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_retrieve_election(self):
-        response = self.client.get(f'/api/elections/elections/{self.election.id}/')
+        election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
+                                           voting_date=timezone.now(), is_active=False)
+        response = self.client.get(f'/api/elections/elections/{election.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_create_election_as_superuser(self):
         self.client.force_authenticate(user=self.superadmin_user)
-        data = {'name': 'New Election'}
+        data = {
+            'type': 'institution',
+            'location_id': self.institution.id,
+            'council_size': 5,
+            'voting_date': timezone.now() + timedelta(days=30),
+            'is_active': False,
+        }
         response = self.client.post('/api/elections/elections/', data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -341,54 +362,121 @@ class ElectionViewSetTest(TestCase):
             username='user', password='userpassword'
         )
         self.client.force_authenticate(user=regular_user)
-        data = {'name': 'New Election'}
+        data = {
+            'type': 'institution',
+            'location_id': self.institution.id,
+            'council_size': 5,
+            'voting_date': timezone.now(),
+            'is_active': False,
+        }
         response = self.client.post('/api/elections/elections/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_election_as_superuser(self):
+        election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
+                                           voting_date=timezone.now() + timedelta(days=30), is_active=False)
         self.client.force_authenticate(user=self.superadmin_user)
-        data = {'name': 'Updated Election'}
-        response = self.client.put(f'/api/elections/elections/{self.election.id}/', data)
+        data = {
+            'council_size': 10,
+            'is_active': True,
+        }
+        response = self.client.patch(f'/api/elections/elections/{election.id}/', data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_election_as_regular_user(self):
+        election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
+                                           voting_date=timezone.now(), is_active=False)
         regular_user = get_user_model().objects.create_user(
             username='user', password='userpassword'
         )
         self.client.force_authenticate(user=regular_user)
         data = {'name': 'Updated Election'}
-        response = self.client.put(f'/api/elections/elections/{self.election.id}/', data)
+        response = self.client.put(f'/api/elections/elections/{election.id}/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_election_as_superuser(self):
+        election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
+                                           voting_date=timezone.now(), is_active=False)
         self.client.force_authenticate(user=self.superadmin_user)
-        response = self.client.delete(f'/api/elections/elections/{self.election.id}/')
+        response = self.client.delete(f'/api/elections/elections/{election.id}/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_election_as_regular_user(self):
+        election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
+                                           voting_date=timezone.now(), is_active=False)
         regular_user = get_user_model().objects.create_user(
             username='user', password='userpassword'
         )
         self.client.force_authenticate(user=regular_user)
-        response = self.client.delete(f'/api/elections/elections/{self.election.id}/')
+        response = self.client.delete(f'/api/elections/elections/{election.id}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class CandidateViewSetTest(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.institution = Institution.objects.create(name='Test Institution')
+        self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
+        self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
+        self.election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
+                                                voting_date=timezone.now(), is_active=False)
+        self.person_data = {
+            'ci': '12345678901',
+            'name': 'John',
+            'last_name': 'Doe',
+            'faculty_id': self.faculty,
+        }
+        self.person = Person.objects.create(**self.person_data)
+        self.candidate_data = {
+            'ci': '12345678901',
+            'election_id': self.election.id,
+            'biography': 'Test Biography',
+            'who_added': 'committee',
+            'staff_votes': 0,
+            'president_votes': 0,
+            'position': 'Test Position',
+            'name': self.person_data['name'],  # Incluye el nombre de la persona
+            'last_name': self.person_data['last_name'],  # Incluye el apellido de la persona
+            'faculty_id': self.faculty.id,
+        }
         self.superadmin_user = get_user_model().objects.create_superuser(
             username='admin', password='adminpassword'
         )
-        self.candidate = Institution.objects.create(name='Test Institution')
 
-    def test_list_candidates(self):
-        response = self.client.get('/api/elections/candidates/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_create_candidate(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        url = reverse('candidate-list')
+        response = self.client.post(url, self.candidate_data, format='json')
+        print(response.content)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Candidate.objects.count(), 1)
+        self.assertEqual(Candidate.objects.get().name, 'John')
 
     def test_retrieve_candidate(self):
-        response = self.client.get(f'/api/elections/candidates/{self.candidate.id}/')
+        candidate = Candidate.objects.create(**self.candidate_data)
+        url = reverse('candidate-detail', args=[str(candidate.id)])
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'John')
+
+    def test_update_candidate(self):
+        candidate = Candidate.objects.create(**self.candidate_data)
+        updated_data = {
+            'biography': 'Updated Biography',
+            'position': 'Updated Position',
+        }
+        url = reverse('candidate-detail', args=[str(candidate.id)])
+        response = self.client.patch(url, updated_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Candidate.objects.get().biography, 'Updated Biography')
+        self.assertEqual(Candidate.objects.get().position, 'Updated Position')
+
+    def test_delete_candidate(self):
+        candidate = Candidate.objects.create(**self.candidate_data)
+        url = reverse('candidate-detail', args=[str(candidate.id)])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Candidate.objects.count(), 0)
 
     def test_create_candidate_as_superuser(self):
         self.client.force_authenticate(user=self.superadmin_user)
@@ -492,4 +580,3 @@ class ElectorRegistryViewSetTest(TestCase):
         self.client.force_authenticate(user=regular_user)
         response = self.client.delete(f'/api/elections/elector-registries/{self.elector_registry.id}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-

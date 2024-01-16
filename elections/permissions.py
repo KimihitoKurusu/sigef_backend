@@ -13,9 +13,11 @@ class IsCandidateManager(permissions.BasePermission):
 
     def has_permission(self, request, view):
         # Verifica si el usuario autenticado pertenece al grupo de "Candidate Managers"
+        user = request.user
+        if user.is_superuser:
+            return True
         election_id_from_data = request.data.get('election_id')
         election_id_from_url = view.kwargs.get('pk')
-        user = request.user
         is_user_authenticated = user.is_authenticated
         is_candidate_manager = user.groups.filter(name='Candidate Managers').exists()
         user_election_id = user.election_id.id if is_user_authenticated and not isinstance(user,
@@ -86,7 +88,7 @@ class IsSuperUser(permissions.BasePermission):
         is_user_authenticated = user.is_authenticated
         is_superuser = user.is_superuser
         return is_user_authenticated and is_superuser
-    
+
 
 class IsSuperUserOrReadOnly(IsSuperUser):
     """
@@ -99,4 +101,3 @@ class IsSuperUserOrReadOnly(IsSuperUser):
             # Permitir acceso de solo lectura para métodos seguros (GET, HEAD, OPTIONS)
             return True
         return super().has_permission(request, view)
-
