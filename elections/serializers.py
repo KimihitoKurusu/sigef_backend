@@ -38,17 +38,24 @@ class CandidateSerializer(serializers.ModelSerializer):
         model = Candidate
         fields = ['ci', 'name', 'last_name', 'faculty_id', 'election_id', 'biography', 'who_added', 'staff_votes',
                   'president_votes', 'position']
-        
-    def create(self, validated_data):
-        person_data = validated_data.pop('person', None)
-        # Create Person if 'ci' data is provided
-        if not Person.objects.filter(ci=person_data['ci']).exists():
-            person = Person.objects.create(**person_data)
-            validated_data['person'] = person
-        else:
-            person = Person.objects.get(person_data.ci)
 
-        return Candidate.objects.create_user(**validated_data)
+    def create(self, validated_data):
+        ci = validated_data.get('ci', None)
+        if ci:
+            # Create Person if 'ci' data is provided
+            if not Person.objects.filter(ci=ci):
+                person = Person.objects.create(ci=ci,
+                                               name=validated_data.get('name', None),
+                                               last_name= validated_data.get('last_name', None),
+                                               faculty_id=Faculty.objects.get(id=validated_data.get('faculty_id', None)))
+                validated_data['person'] = person
+            else:
+                person = Person.objects.get(ci=ci)
+        else:
+            # Handle the case when 'person' is not present in validated_data
+            person = None
+
+        return Candidate.objects.create(**validated_data)
     
     def update(self, instance, validated_data):
         person_data = validated_data.pop('person', None)
@@ -74,7 +81,6 @@ class CandidateSerializer(serializers.ModelSerializer):
         return instance
 
 
-
 class ElectorRegistrySerializer(serializers.ModelSerializer):
     class Meta:
         model = ElectorRegistry
@@ -90,7 +96,7 @@ class ElectorRegistrySerializer(serializers.ModelSerializer):
             person = Person.objects.get(person_data.ci)
 
         return Candidate.objects.create_user(**validated_data)
-    
+
     def update(self, instance, validated_data):
         person_data = validated_data.pop('person', None)
 
