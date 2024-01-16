@@ -16,6 +16,7 @@ pipenv-install:
 
 down:
 	 docker-compose -f docker-compose.local.yml down
+
 start:
 	 docker-compose -f docker-compose.local.yml up web
 
@@ -42,8 +43,6 @@ managepy:
 
 pgadmin:
 	 docker-compose -f docker-compose.local.yml up pgadmin
-
-# Makefile
 
 test:
 	docker-compose -f docker-compose.test.yml -p sigef_backend_test run --rm web pytest $(arg)
