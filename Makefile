@@ -49,5 +49,5 @@ test:
 	docker-compose -f docker-compose.test.yml -p sigef_backend_test down
 
 test-fast:
-	docker-compose -f docker-compose.test.yml -p sigef_backend_test run --rm web pytest --no-migrations $(arg)
+	docker-compose -f docker-compose.test.yml -p sigef_backend_test run --rm web pytest -vv --no-migrations $(arg)
 
