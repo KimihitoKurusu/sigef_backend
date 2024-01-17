@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 import jwt
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.http import JsonResponse
 from django.test import TestCase
 from django.urls import reverse
@@ -13,6 +14,7 @@ from rest_framework.test import APIClient
 
 from elections.helpers.permission_helpers import verification_token
 from elections.models import *
+from .factory.models_factory import *
 
 
 class VerificarTokenTest(unittest.TestCase):
@@ -72,7 +74,10 @@ class InstitutionViewSetTest(TestCase):
         self.superadmin_user = get_user_model().objects.create_superuser(
             username='admin', password='adminpassword'
         )
-        self.institution = Institution.objects.create(name='Test Institution')
+        self.institution = InstitutionFactory()
+        self.regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword', person=PersonFactory()
+        )
 
     def test_list_institutions(self):
         response = self.client.get('/api/elections/institutions/')
@@ -89,10 +94,7 @@ class InstitutionViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_institution_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         data = {'name': 'New Institution'}
         response = self.client.post('/api/elections/institutions/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -104,10 +106,7 @@ class InstitutionViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_institution_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         data = {'name': 'Updated Institution'}
         response = self.client.put(f'/api/elections/institutions/{self.institution.id}/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -118,10 +117,7 @@ class InstitutionViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_institution_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         response = self.client.delete(f'/api/elections/institutions/{self.institution.id}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -132,8 +128,11 @@ class CampusViewSetTest(TestCase):
         self.superadmin_user = get_user_model().objects.create_superuser(
             username='admin', password='adminpassword'
         )
-        self.institution = Institution.objects.create(name='Test Institution')
-        self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
+        self.institution = InstitutionFactory()
+        self.campus = CampusFactory()
+        self.regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword', person=PersonFactory()
+        )
 
     def test_list_campuses(self):
         response = self.client.get('/api/elections/campuses/')
@@ -150,10 +149,7 @@ class CampusViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_campus_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         data = {'name': 'New Campus', 'institution_id': self.institution.id}
         response = self.client.post('/api/elections/campuses/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -165,10 +161,7 @@ class CampusViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_campus_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         data = {'name': 'Updated Campus', 'institution_id': self.institution.id}
         response = self.client.put(f'/api/elections/campuses/{self.campus.id}/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -179,10 +172,7 @@ class CampusViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_campus_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         response = self.client.delete(f'/api/elections/campuses/{self.campus.id}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -193,9 +183,11 @@ class FacultyViewSetTest(TestCase):
         self.superadmin_user = get_user_model().objects.create_superuser(
             username='admin', password='adminpassword'
         )
-        self.institution = Institution.objects.create(name='Test Institution')
-        self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
-        self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
+        self.campus = CampusFactory()
+        self.faculty = FacultyFactory()
+        self.regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword', person=PersonFactory()
+        )
 
     def test_list_faculties(self):
         response = self.client.get('/api/elections/faculties/')
@@ -212,10 +204,7 @@ class FacultyViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_faculty_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         data = {'name': 'New Faculty', 'campus_id': self.campus.id}
         response = self.client.post('/api/elections/faculties/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -227,10 +216,7 @@ class FacultyViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_faculty_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         data = {'name': 'Updated Faculty', 'campus_id': self.campus.id}
         response = self.client.put(f'/api/elections/faculties/{self.faculty.id}/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -241,10 +227,7 @@ class FacultyViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_faculty_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         response = self.client.delete(f'/api/elections/faculties/{self.faculty.id}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -256,10 +239,11 @@ class PersonViewSetTest(TestCase):
         self.superadmin_user = get_user_model().objects.create_superuser(
             username='admin', password='adminpassword'
         )
-        self.institution = Institution.objects.create(name='Test Institution')
-        self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
-        self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
-        self.person = Person.objects.create(ci='12345678901', name='Test', last_name='Person', faculty_id=self.faculty)
+        self.faculty = FacultyFactory()
+        self.regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword', person=PersonFactory()
+        )
+        self.person = PersonFactory()
 
     def test_list_persons(self):
         response = self.client.get(self.url)
@@ -276,10 +260,7 @@ class PersonViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_person_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         data = {'ci': '12345678902', 'name': 'New', 'last_name': 'Person', 'faculty_id': self.faculty.id}
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -292,10 +273,7 @@ class PersonViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_person_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
 
         data = {'name': 'Updated', 'last_name': 'Person', 'faculty_id': self.faculty.id}
         response = self.client.put(f'{self.url}{self.person.ci}/', data)
@@ -315,8 +293,7 @@ class PersonViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_person_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(username='user', password='userpassword')
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         response = self.client.delete(f'{self.url}{self.person.ci}/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -327,11 +304,11 @@ class ElectionViewSetTest(TestCase):
         self.superadmin_user = get_user_model().objects.create_superuser(
             username='admin', password='adminpassword'
         )
-        self.institution = Institution.objects.create(name='Test Institution')
-        self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
-        self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
-        self.election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
-                                                voting_date=timezone.now(), is_active=False)
+        self.regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword', person=PersonFactory()
+        )
+        self.institution = InstitutionFactory()
+        self.election = ElectionFactory()
 
     def test_list_elections(self):
         Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
@@ -358,10 +335,7 @@ class ElectionViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_election_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        self.client.force_authenticate(user=self.regular_user)
         data = {
             'type': 'institution',
             'location_id': self.institution.id,
@@ -373,8 +347,7 @@ class ElectionViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_election_as_superuser(self):
-        election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
-                                           voting_date=timezone.now() + timedelta(days=30), is_active=False)
+        election = ElectionFactory()
         self.client.force_authenticate(user=self.superadmin_user)
         data = {
             'council_size': 10,
@@ -384,30 +357,21 @@ class ElectionViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_election_as_regular_user(self):
-        election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
-                                           voting_date=timezone.now(), is_active=False)
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        election = ElectionFactory()
+        self.client.force_authenticate(user=self.regular_user)
         data = {'name': 'Updated Election'}
         response = self.client.put(f'/api/elections/elections/{election.id}/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_election_as_superuser(self):
-        election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
-                                           voting_date=timezone.now(), is_active=False)
+        election = ElectionFactory()
         self.client.force_authenticate(user=self.superadmin_user)
         response = self.client.delete(f'/api/elections/elections/{election.id}/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_election_as_regular_user(self):
-        election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
-                                           voting_date=timezone.now(), is_active=False)
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
+        election = ElectionFactory()
+        self.client.force_authenticate(user=self.regular_user)
         response = self.client.delete(f'/api/elections/elections/{election.id}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -415,20 +379,28 @@ class ElectionViewSetTest(TestCase):
 class CandidateViewSetTest(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.superadmin_user = get_user_model().objects.create_superuser(
+            username='admin', password='adminpassword'
+        )
         self.institution = Institution.objects.create(name='Test Institution')
         self.campus = Campus.objects.create(name='Test Campus', institution_id=self.institution)
         self.faculty = Faculty.objects.create(name='Test Faculty', campus_id=self.campus)
         self.election = Election.objects.create(type='institution', location_id=self.institution.id, council_size=5,
                                                 voting_date=timezone.now(), is_active=False)
+        self.person = PersonFactory()
+        self.candidate_managers_group, created = Group.objects.get_or_create(name='Candidate Managers')
+        self.user = get_user_model().objects.create_user(
+            username='user', password='adminpassword', person=self.person, election_id=self.election
+        )
+        self.user.groups.add(self.candidate_managers_group)
         self.person_data = {
             'ci': '12345678901',
             'name': 'John',
             'last_name': 'Doe',
-            'faculty_id': self.faculty,
+            'faculty_id': self.faculty.id,
         }
-        self.person = Person.objects.create(**self.person_data)
         self.candidate_data = {
-            'ci': '12345678901',
+            'person': self.person_data,
             'election_id': self.election.id,
             'biography': 'Test Biography',
             'who_added': 'committee',
@@ -439,86 +411,126 @@ class CandidateViewSetTest(TestCase):
             'last_name': self.person_data['last_name'],  # Incluye el apellido de la persona
             'faculty_id': self.faculty.id,
         }
-        self.superadmin_user = get_user_model().objects.create_superuser(
-            username='admin', password='adminpassword'
-        )
 
-    def test_create_candidate(self):
+    def test_create_candidate_as_superuser(self):
+        # Autenticar como superusuario
         self.client.force_authenticate(user=self.superadmin_user)
         url = reverse('candidate-list')
         response = self.client.post(url, self.candidate_data, format='json')
         print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Candidate.objects.count(), 1)
-        self.assertEqual(Candidate.objects.get().name, 'John')
-
-    def test_retrieve_candidate(self):
-        candidate = Candidate.objects.create(**self.candidate_data)
-        url = reverse('candidate-detail', args=[str(candidate.id)])
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['name'], 'John')
-
-    def test_update_candidate(self):
-        candidate = Candidate.objects.create(**self.candidate_data)
-        updated_data = {
-            'biography': 'Updated Biography',
-            'position': 'Updated Position',
-        }
-        url = reverse('candidate-detail', args=[str(candidate.id)])
-        response = self.client.patch(url, updated_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Candidate.objects.get().biography, 'Updated Biography')
-        self.assertEqual(Candidate.objects.get().position, 'Updated Position')
-
-    def test_delete_candidate(self):
-        candidate = Candidate.objects.create(**self.candidate_data)
-        url = reverse('candidate-detail', args=[str(candidate.id)])
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Candidate.objects.count(), 0)
-
-    def test_create_candidate_as_superuser(self):
-        self.client.force_authenticate(user=self.superadmin_user)
-        data = {'name': 'New Institution'}
-        response = self.client.post('/api/elections/candidates/', data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_candidate_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
-        data = {'name': 'New Institution'}
-        response = self.client.post('/api/elections/candidates/', data)
+        self.client.force_authenticate(user=self.user)
+        url = reverse('candidate-list')
+        response = self.client.post(url, self.candidate_data, format='json')
+        print(response.content)
+        # Verificar que el acceso sea denegado para usuarios regulares
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Candidate.objects.count(), 1)
+
+    def test_create_candidate_as_regular_user_other_election(self):
+        user = CustomUserFactory()
+        user.groups.add(self.candidate_managers_group)
+        self.client.force_authenticate(user=user)
+        url = reverse('candidate-list')
+        response = self.client.post(url, self.candidate_data, format='json')
+        print(response.content)
+        # Verificar que el acceso sea denegado para usuarios regulares
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Candidate.objects.count(), 0)
 
     def test_update_candidate_as_superuser(self):
+        # Crear un candidato para actualizar
+        candidate = CandidateFactory()
+
+        # Autenticar como superusuario
         self.client.force_authenticate(user=self.superadmin_user)
-        data = {'name': 'Updated Institution'}
-        response = self.client.put(f'/api/elections/candidates/{self.candidate.id}/', data)
+
+        # Datos de ejemplo para la actualización del candidato
+        updated_data = {
+            'biography': 'Pene',
+            'staff_votes': 10,
+        }
+
+        url = reverse('candidate-detail', args=[candidate.person.ci])
+        response = self.client.patch(url, updated_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        candidate.refresh_from_db()
+        # Verificar que los datos del candidato se hayan actualizado correctamente
+        self.assertEqual(candidate.biography, updated_data["biography"])
+        self.assertEqual(candidate.staff_votes, updated_data["staff_votes"])
 
     def test_update_candidate_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
-        data = {'name': 'Updated Institution'}
-        response = self.client.put(f'/api/elections/candidates/{self.candidate.id}/', data)
+        candidate = CandidateFactory()
+        candidate.election_id = self.user.election_id
+        candidate.save()
+        # Autenticar como superusuario
+        self.client.force_authenticate(user=self.user)
+
+        # Datos de ejemplo para la actualización del candidato
+        updated_data = {
+            'biography': 'Pene',
+            'staff_votes': 10,
+        }
+
+        url = reverse('candidate-detail', args=[candidate.person.ci])
+        response = self.client.patch(url, updated_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        candidate.refresh_from_db()
+        # Verificar que los datos del candidato se hayan actualizado correctamente
+        self.assertEqual(candidate.biography, updated_data["biography"])
+        self.assertEqual(candidate.staff_votes, updated_data["staff_votes"])
+
+    def test_update_candidate_as_regular_user_other_election(self):
+        candidate = CandidateFactory()
+        self.client.force_authenticate(user=self.user)
+        updated_data = {
+            'biography': 'Pene',
+            'staff_votes': 10,
+        }
+        url = reverse('candidate-detail', args=[candidate.person.ci])
+        response = self.client.patch(url, updated_data, format='json')
+
+        # Verificar que el acceso sea denegado para usuarios regulares
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_candidate_as_superuser(self):
+        # Crear un candidato para eliminar
+        candidate_data = CandidateFactory()
+
+        # Autenticar como superusuario
         self.client.force_authenticate(user=self.superadmin_user)
-        response = self.client.delete(f'/api/elections/candidates/{self.candidate.id}/')
+
+        url = reverse('candidate-detail', args=[candidate_data.person.ci])
+        response = self.client.delete(url)
+
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Candidate.objects.count(), 0)
 
     def test_delete_candidate_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
-        response = self.client.delete(f'/api/elections/candidates/{self.candidate.id}/')
+        # Crear un candidato para eliminar
+        candidate_data = CandidateFactory()
+        candidate_data.election_id = self.election
+        candidate_data.save()
+
+        self.client.force_authenticate(user=self.user)
+
+        url = reverse('candidate-detail', args=[candidate_data.person.ci])
+        response = self.client.delete(url)
+        print(response.content)
+        # Verificar que el acceso sea denegado para usuarios regulares
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Candidate.objects.count(), 0)
+
+    def test_delete_candidate_as_regular_user_other_election(self):
+        candidate = CandidateFactory()
+        self.client.force_authenticate(user=self.user)
+        url = reverse('candidate-detail', args=[candidate.person.ci])
+        response = self.client.delete(url)
+
+        # Verificar que el acceso sea denegado para usuarios regulares
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 

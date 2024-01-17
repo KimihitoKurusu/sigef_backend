@@ -7,8 +7,8 @@ from elections.models import Candidate, Election
 
 
 class CustomAPIException(APIException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = "Bad Request"
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = "Forbidden"
 
 
 def is_same_election_id(user_election_id, election_id_from_data, election_id_from_url, type):

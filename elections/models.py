@@ -61,7 +61,9 @@ class Election(models.Model):
         return f'Elecciones de {self.get_type_display()} en {location}'
 
 
-class Candidate(Person):
+class Candidate(models.Model):
+    person = models.OneToOneField(Person, on_delete=models.CASCADE, related_name='candidate', primary_key=True,
+                                  default=None)
     WHO_ADDED_CHOICES = [
         ('committee', 'Comité'),
         ('elector', 'Elector'),
@@ -79,7 +81,7 @@ class Candidate(Person):
     position = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f'{self.name} {self.last_name}'
+        return f'{self.person.name} {self.person.last_name}'
 
 
 class ElectorRegistry(models.Model):
