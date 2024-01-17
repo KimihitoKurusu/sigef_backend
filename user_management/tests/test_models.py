@@ -1,15 +1,19 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
+from elections.tests.factory.models_factory import PersonFactory, ElectionFactory
+from user_management.models import CustomUser
+
 
 class UserManagerTests(TestCase):
     def test_create_user(self):
         """
         Test creating a regular user.
         """
-        user = get_user_model().objects.create_user(username='testuser', password='testpassword')
+        user = get_user_model().objects.create_user(username='testuser', password='testpassword',
+                                                    person=PersonFactory())
         self.assertEqual(user.username, 'testuser')
-        self.assertFalse(user.is_staff)
+        self.assertTrue(user.is_staff)
         self.assertFalse(user.is_superuser)
 
         self.assertIsNotNone(get_user_model().objects.get(username='testuser'))
@@ -31,31 +35,24 @@ class UserManagerTests(TestCase):
 
 class CustomUserTests(TestCase):
     def setUp(self):
-        from elections.models import Person, Election
-
-        self.person = Person.objects.create(ci='12345678901', name='John', last_name='Doe')
-        self.election = Election.objects.create(type='institution', location_id=1, council_size=5,
-                                                voting_date='2022-01-01', is_active=True)
+        self.person = PersonFactory()
+        self.election = ElectionFactory()
 
     def test_create_user_with_person(self):
         """
         Test creating a user with associated person.
         """
-        user = get_user_model().objects.create_user(username='testuser', password='testpassword', create_person=True,
-                                                    person=self.person)
+        user = CustomUser.objects.create_user(username='testuser', password='testpassword', person=self.person)
         self.assertEqual(user.username, 'testuser')
-        self.assertEqual(user.person, self.person)
-        self.assertFalse(user.is_staff)
+        self.assertEqual(user.person.ci, self.person.ci)
+        self.assertTrue(user.is_staff)
         self.assertFalse(user.is_superuser)
-
-        self.assertEqual(user.person, self.person)
 
     def test_create_superuser_with_person_and_election(self):
         """
         Test creating a superuser with associated person and election.
         """
-        admin_user = get_user_model().objects.create_superuser(username='admin', password='adminpassword',
-                                                               create_person=True)
+        admin_user = get_user_model().objects.create_superuser(username='admin', password='adminpassword')
         self.assertEqual(admin_user.username, 'admin')
         self.assertTrue(admin_user.is_staff)
         self.assertTrue(admin_user.is_superuser)
