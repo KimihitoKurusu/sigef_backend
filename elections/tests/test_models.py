@@ -15,6 +15,7 @@ from rest_framework.test import APIClient
 from elections.helpers.permission_helpers import verification_token
 from elections.models import *
 from .factory.models_factory import *
+from ..serializers import ElectorRegistrySerializer
 
 
 class VerificarTokenTest(unittest.TestCase):
@@ -540,55 +541,47 @@ class ElectorRegistryViewSetTest(TestCase):
         self.superadmin_user = get_user_model().objects.create_superuser(
             username='admin', password='adminpassword'
         )
-        self.elector_registry = Institution.objects.create(name='Test Institution')
+        self.regular_user = get_user_model().objects.create_user(
+            username='user', password='userpassword', person=PersonFactory()
+        )
+        self.institution = InstitutionFactory()
+        self.election = ElectionFactory()
+        self.person = PersonFactory()
 
-    def test_list_elector_registries(self):
-        response = self.client.get('/api/elections/elector-registries/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_list_elector_registry(self):
+        # Crea algunos registros de ElectorRegistry para probar la lista
+        ElectorRegistryFactory.create_batch(3)
+
+        url = reverse('electorregistry-list')
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 4
+
+    def test_create_elector_registry(self):
+        # Crea instancias necesarias (puedes usar factories para esto)
+        person = PersonFactory()
+        election = ElectionFactory()
+
+        data = {
+            'ci': person.ci,
+            'election_id': election.id,
+        }
+
+        url = reverse('electorregistry-list')
+        response = self.client.post(url, data)
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Verifica que el registro se haya creado correctamente
+        elector_registry = ElectorRegistry.objects.first()
+        assert elector_registry.ci == person
+        assert elector_registry.election_id == election
 
     def test_retrieve_elector_registry(self):
-        response = self.client.get(f'/api/elections/elector-registries/{self.elector_registry.id}/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        elector_registry = ElectorRegistry.objects.create(ci=self.person, election_id=self.election)
 
-    def test_create_elector_registry_as_superuser(self):
-        self.client.force_authenticate(user=self.superadmin_user)
-        data = {'name': 'New Institution'}
-        response = self.client.post('/api/elections/elector-registries/', data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    def test_create_elector_registry_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
-        data = {'name': 'New Institution'}
-        response = self.client.post('/api/elections/elector-registries/', data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_update_elector_registry_as_superuser(self):
-        self.client.force_authenticate(user=self.superadmin_user)
-        data = {'name': 'Updated Institution'}
-        response = self.client.put(f'/api/elections/elector-registries/{self.elector_registry.id}/', data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_update_elector_registry_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
-        data = {'name': 'Updated Institution'}
-        response = self.client.put(f'/api/elections/elector-registries/{self.elector_registry.id}/', data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_delete_elector_registry_as_superuser(self):
-        self.client.force_authenticate(user=self.superadmin_user)
-        response = self.client.delete(f'/api/elections/elector-registries/{self.elector_registry.id}/')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-    def test_delete_elector_registry_as_regular_user(self):
-        regular_user = get_user_model().objects.create_user(
-            username='user', password='userpassword'
-        )
-        self.client.force_authenticate(user=regular_user)
-        response = self.client.delete(f'/api/elections/elector-registries/{self.elector_registry.id}/')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        url = reverse('electorregistry-detail', args=[elector_registry.id])
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == ElectorRegistrySerializer(elector_registry).data

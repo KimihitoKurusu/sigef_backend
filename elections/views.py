@@ -55,4 +55,4 @@ class CandidateViewSet(viewsets.ModelViewSet):
 
 class ElectorRegistryViewSet(viewsets.ModelViewSet):
     queryset = ElectorRegistry.objects.all()
-    serializer_class = [ElectorRegistrySerializer]
+    serializer_class = ElectorRegistrySerializer
