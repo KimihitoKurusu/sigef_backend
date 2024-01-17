@@ -4,7 +4,7 @@ from django.utils import timezone
 from factory.django import DjangoModelFactory
 from faker import Faker
 
-from elections.models import Institution, Campus, Faculty, Election, Person, Candidate
+from elections.models import Institution, Campus, Faculty, Election, Person, Candidate, ElectorRegistry
 from user_management.models import CustomUser
 
 fake = Faker()
@@ -67,6 +67,14 @@ class CandidateFactory(DjangoModelFactory):
     position = factory.Faker('job')
 
 
+class ElectorRegistryFactory(factory.Factory):
+    class Meta:
+        model = ElectorRegistry
+
+    ci = factory.SubFactory(PersonFactory)
+    election_id = factory.SubFactory(ElectionFactory)
+
+
 class CustomUserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = CustomUser
@@ -78,8 +86,8 @@ class CustomUserFactory(factory.django.DjangoModelFactory):
     is_superuser = False
     election_id = factory.SubFactory(ElectionFactory)
 
-    @classmethod
-    def _create(cls, model_class, *args, **kwargs):
-        # Hash de la contraseña para evitar problemas al crear el usuario
-        kwargs['password'] = make_password(kwargs.pop('password', 'password'))
-        return super()._create(model_class, *args, **kwargs)
+    # @classmethod
+    # def _create(cls, model_class, *args, **kwargs):
+    #     # Hash de la contraseña para evitar problemas al crear el usuario
+    #     kwargs['password'] = make_password(kwargs.pop('password', 'password'))
+    #     return super()._create(model_class, *args, **kwargs)
