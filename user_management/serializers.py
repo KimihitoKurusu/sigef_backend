@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from elections.models import Person
 from elections.serializers import PersonSerializer
-from .models import CustomUser
+from .models import CustomUser, CustomUserLog
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -46,3 +46,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class CustomUserLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUserLog
+        fields = '__all__'
