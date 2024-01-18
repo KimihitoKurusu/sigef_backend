@@ -1,8 +1,9 @@
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .permissions import IsCandidateManagerOrReadOnly, IsElectionManagerOrReadOnly
+from .permissions import IsCandidateManagerOrReadOnly
 from .permissions import IsSuperUserOrReadOnly
 from .serializers import *
 
@@ -56,3 +57,17 @@ class CandidateViewSet(viewsets.ModelViewSet):
 class ElectorRegistryViewSet(viewsets.ModelViewSet):
     queryset = ElectorRegistry.objects.all()
     serializer_class = ElectorRegistrySerializer
+
+    @action(detail=True, methods=['post'])
+    def vote(self, request, pk=None):
+        elector_registry = self.get_object()
+        # Aquí debes agregar la lógica para manejar la votación
+        # Puedes acceder a la instancia del ElectorRegistry mediante 'elector_registry'
+        # y al cuerpo de la solicitud mediante 'request.data'
+
+        # Por ejemplo, puedes actualizar el modelo y guardar los cambios
+        # elector_registry.voted = True
+        # elector_registry.save()
+
+        # Retorna una respuesta adecuada según tus necesidades
+        return Response({'message': 'Votación realizada con éxito'}, status=status.HTTP_200_OK)
