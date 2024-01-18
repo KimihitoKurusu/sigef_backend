@@ -588,37 +588,45 @@ class ElectorRegistryViewSetTest(TestCase):
 
 
 class CandidateLogViewSetTest(TestCase):
-  def setUp(self):
-      self.superadmin_user = get_user_model().objects.create_superuser(
-          username='admin', password='adminpassword'
-      )
-      self.person = PersonFactory()
-      self.election = ElectionFactory()
-      self.candidate_log = CandidateLog.objects.create(person=self.person, election_id=self.election, biography='Test Biography', who_added='committee', staff_votes=0, president_votes=0, position='Test Position')
+    def setUp(self):
+        self.client = APIClient()
+        self.superadmin_user = get_user_model().objects.create_superuser(
+            username='admin', password='adminpassword'
+        )
+        self.person = PersonFactory()
+        self.election = ElectionFactory()
+        self.candidate_log = CandidateLog.objects.create(person=self.person, election_id=self.election, biography='Test Biography', who_added='committee', staff_votes=0, president_votes=0, position='Test Position')
 
-  def test_list_candidate_logs(self):
-      self.client.login(username='admin', password='adminpassword')
-      response = self.client.get('/api/elections/candidate-log/')
-      self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_list_candidate_logs(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        response = self.client.get('/api/elections/candidate-log/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-  def test_retrieve_candidate_log(self):
-      self.client.login(username='admin', password='adminpassword')
-      response = self.client.get(f'/api/elections/candidate-log/{self.candidate_log.id}/')
-      self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_retrieve_candidate_log(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        response = self.client.get(f'/api/elections/candidate-log/{self.candidate_log.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-  def test_create_candidate_log_as_superuser(self):
-      self.client.login(username='admin', password='adminpassword')
-      data = {'person': self.person.ci, 'election_id': self.election.id, 'biography': 'New Biography', 'who_added': 'elector', 'staff_votes': 10, 'president_votes': 10, 'position': 'New Position'}
-      response = self.client.post('/api/elections/candidate-log/', data)
-      self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_create_candidate_log_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        data = {'person': self.person.ci, 'election_id': self.election.id, 'biography': 'New Biography', 'who_added': 'elector', 'staff_votes': 10, 'president_votes': 10, 'position': 'New Position'}
+        response = self.client.post('/api/elections/candidate-log/', data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-  def test_update_candidate_log_as_superuser(self):
-      self.client.login(username='admin', password='adminpassword')
-      data = {'biography': 'Updated Biography', 'who_added': 'committee', 'staff_votes': 20, 'president_votes': 20, 'position': 'Updated Position'}
-      response = self.client.put(f'/api/elections/candidate-log/{self.candidate_log.id}/', data)
-      self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_update_candidate_log_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        data = {
+            'biography': 'Updated Biography',
+            'who_added': 'committee',
+            'staff_votes': 20,
+            'president_votes': 20,
+            'position': 'Updated Position'
+        }
+        headers = {'content-type': 'application/json'}
+        response = self.client.patch(f'/api/elections/candidate-log/{self.candidate_log.id}/', data=data,format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-  def test_delete_candidate_log_as_superuser(self):
-      self.client.login(username='admin', password='adminpassword')
-      response = self.client.delete(f'/api/elections/candidate-log/{self.candidate_log.id}/')
-      self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    def test_delete_candidate_log_as_superuser(self):
+        self.client.force_authenticate(user=self.superadmin_user)
+        response = self.client.delete(f'/api/elections/candidate-log/{self.candidate_log.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
