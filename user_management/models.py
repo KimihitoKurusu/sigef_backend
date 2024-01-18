@@ -74,3 +74,22 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f'{self.username} ({self.person.__str__()})'
+
+class CustomUserLog(models.Model):
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True, editable=True)
+    username = models.CharField('Nombre de Usuario', max_length=255)
+    date_joined = models.DateTimeField()
+    is_staff = models.BooleanField(
+        'Es de la mesa electoral?',
+        default=False,
+        help_text='Indica si el usuario pertenece a la mesa electoral',
+    )
+    is_superuser = models.BooleanField(
+        'Es super usuario?',
+        default=False,
+        help_text='Indica si el usuario tiene power',
+    )
+    election_id = models.ForeignKey(Election, null=True, blank=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.username} ({self.person.__str__()})'
