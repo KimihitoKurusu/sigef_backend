@@ -1,5 +1,4 @@
 import factory
-from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from factory.django import DjangoModelFactory
 from faker import Faker
