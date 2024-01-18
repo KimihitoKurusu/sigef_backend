@@ -1,3 +1,4 @@
+from email import header
 import json
 import unittest
 
@@ -73,18 +74,19 @@ User = get_user_model()
 
 class CustomUserLogViewSetTest(TestCase):
    def setUp(self):
-       self.superadmin_user = User.objects.create_superuser(username='admin', password='adminpassword')
-       self.client.login(username='admin', password='adminpassword')
+       self.client = APIClient()
+       self.superadmin_user = get_user_model().objects.create_superuser(username='admin', password='adminpassword')
+       self.client.force_authenticate(user=self.superadmin_user)
 
    def test_create_custom_user_log(self):
        url = reverse('customuserlog-list')
        data = {
-           'person': PersonFactory(),
+           'person': PersonFactory().ci,
            'username': 'testuser',
            'date_joined': timezone.now(),
            'is_staff': False,
            'is_superuser': False,
-           'election_id': ElectionFactory(),
+           'election_id': ElectionFactory().id,
        }
        response = self.client.post(url, data, format='json')
        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -104,6 +106,7 @@ class CustomUserLogViewSetTest(TestCase):
            'is_superuser': True,
        }
        response = self.client.patch(url, data, format='json')
+       print('nbcrwapmcghuroeaphuwopgvne', response.content)
        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
    def test_delete_custom_user_log(self):
