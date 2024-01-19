@@ -4,6 +4,7 @@ from datetime import timedelta
 from unittest.mock import MagicMock
 
 import jwt
+from decouple import config
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
@@ -586,9 +587,9 @@ class ElectorRegistryViewSetTest(TestCase):
                 }
             }
         }
-
+        token = jwt.encode(data, config('SECRET_KEY'), algorithm='HS256')
         url = reverse('electorregistry-list')
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, {'token': token}, format='json')
 
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -621,7 +622,9 @@ class CandidateLogViewSetTest(TestCase):
         )
         self.person = PersonFactory()
         self.election = ElectionFactory()
-        self.candidate_log = CandidateLog.objects.create(person=self.person, election_id=self.election, biography='Test Biography', who_added='committee', staff_votes=0, president_votes=0, position='Test Position')
+        self.candidate_log = CandidateLog.objects.create(person=self.person, election_id=self.election,
+                                                         biography='Test Biography', who_added='committee',
+                                                         staff_votes=0, president_votes=0, position='Test Position')
 
     def test_list_candidate_logs(self):
         self.client.force_authenticate(user=self.superadmin_user)
@@ -635,7 +638,8 @@ class CandidateLogViewSetTest(TestCase):
 
     def test_create_candidate_log_as_superuser(self):
         self.client.force_authenticate(user=self.superadmin_user)
-        data = {'person': self.person.ci, 'election_id': self.election.id, 'biography': 'New Biography', 'who_added': 'elector', 'staff_votes': 10, 'president_votes': 10, 'position': 'New Position'}
+        data = {'person': self.person.ci, 'election_id': self.election.id, 'biography': 'New Biography',
+                'who_added': 'elector', 'staff_votes': 10, 'president_votes': 10, 'position': 'New Position'}
         response = self.client.post('/api/elections/candidate-log/', data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -649,7 +653,7 @@ class CandidateLogViewSetTest(TestCase):
             'position': 'Updated Position'
         }
         headers = {'content-type': 'application/json'}
-        response = self.client.patch(f'/api/elections/candidate-log/{self.candidate_log.id}/', data=data,format='json')
+        response = self.client.patch(f'/api/elections/candidate-log/{self.candidate_log.id}/', data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_candidate_log_as_superuser(self):

@@ -1,6 +1,7 @@
+import jwt
+from decouple import config
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.request import Request
 from rest_framework.response import Response
 
 from .permissions import IsCandidateManagerOrReadOnly
@@ -59,12 +60,14 @@ class ElectorRegistryViewSet(viewsets.ModelViewSet):
     serializer_class = ElectorRegistrySerializer
 
     def create(self, request, *args, **kwargs):
-        candidates = Candidate.objects.filter(pk__in=request.data['candidates'].keys())
-        elector = Person.objects.get(ci=request.data['elector']['ci'])
-        election = Election.objects.get(pk=request.data['elector']['election_id'])
+        print('AAAAAAAAAAAAAAAAAAAA', request.data['token'])
+        data = jwt.decode(request.data['token'], config('SECRET_KEY'), algorithms=['HS256'])
+        candidates = Candidate.objects.filter(pk__in=data['candidates'].keys())
+        elector = Person.objects.get(ci=data['elector']['ci'])
+        election = Election.objects.get(pk=data['elector']['election_id'])
 
         for candidate in candidates:
-            votes = request.data['candidates'][str(candidate.pk)]
+            votes = data['candidates'][str(candidate.pk)]
             candidate.staff_votes += 1 if votes['staff_votes'] else 0
             candidate.president_votes += 1 if votes['president_votes'] else 0
 

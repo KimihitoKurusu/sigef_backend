@@ -84,10 +84,7 @@ class IsSuperUser(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        user = request.user
-        is_user_authenticated = user.is_authenticated
-        is_superuser = user.is_superuser
-        return is_user_authenticated and is_superuser
+        return request.user.is_authenticated and request.user.is_superuser
 
 
 class IsSuperUserOrReadOnly(IsSuperUser):
