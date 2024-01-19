@@ -3,7 +3,7 @@ from rest_framework import permissions
 from rest_framework import status
 from rest_framework.response import Response
 
-from .helpers.permission_helpers import is_same_election_id
+from .helpers.permission_helpers import is_same_election_id, CustomAPIException
 
 
 class IsCandidateManager(permissions.BasePermission):
@@ -13,6 +13,8 @@ class IsCandidateManager(permissions.BasePermission):
 
     def has_permission(self, request, view):
         # Verifica si el usuario autenticado pertenece al grupo de "Candidate Managers"
+        if bool(request.data.get('staff_votes', None)) or bool(request.data.get('president_votes', None)):
+            raise CustomAPIException("You cannot alter the election's result")
         user = request.user
         if user.is_superuser:
             return True
@@ -98,3 +100,12 @@ class IsSuperUserOrReadOnly(IsSuperUser):
             # Permitir acceso de solo lectura para métodos seguros (GET, HEAD, OPTIONS)
             return True
         return super().has_permission(request, view)
+
+
+class IsReadOnly(permissions.BasePermission):
+    """
+    Custom permission to allow read-only access.
+    """
+
+    def has_permission(self, request, view):
+        return request.method in permissions.SAFE_METHODS

@@ -443,7 +443,7 @@ class CandidateViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Candidate.objects.count(), 0)
 
-    def test_update_candidate_as_superuser(self):
+    def test_update_votes_candidate_as_superuser(self):
         # Crear un candidato para actualizar
         candidate = CandidateFactory()
 
@@ -458,11 +458,27 @@ class CandidateViewSetTest(TestCase):
 
         url = reverse('candidate-detail', args=[candidate.person.ci])
         response = self.client.patch(url, updated_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_update_candidate_as_superuser(self):
+        # Crear un candidato para actualizar
+        candidate = CandidateFactory()
+
+        # Autenticar como superusuario
+        self.client.force_authenticate(user=self.superadmin_user)
+
+        # Datos de ejemplo para la actualización del candidato
+        updated_data = {
+            'biography': 'Pene',
+            'position': 'Merienda'
+        }
+        url = reverse('candidate-detail', args=[candidate.person.ci])
+        response = self.client.patch(url, updated_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         candidate.refresh_from_db()
         # Verificar que los datos del candidato se hayan actualizado correctamente
         self.assertEqual(candidate.biography, updated_data["biography"])
-        self.assertEqual(candidate.staff_votes, updated_data["staff_votes"])
+        self.assertEqual(candidate.position, updated_data["position"])
 
     def test_update_candidate_as_regular_user(self):
         candidate = CandidateFactory()
@@ -474,7 +490,7 @@ class CandidateViewSetTest(TestCase):
         # Datos de ejemplo para la actualización del candidato
         updated_data = {
             'biography': 'Pene',
-            'staff_votes': 10,
+            'position': 'Merienda'
         }
 
         url = reverse('candidate-detail', args=[candidate.person.ci])
@@ -483,7 +499,7 @@ class CandidateViewSetTest(TestCase):
         candidate.refresh_from_db()
         # Verificar que los datos del candidato se hayan actualizado correctamente
         self.assertEqual(candidate.biography, updated_data["biography"])
-        self.assertEqual(candidate.staff_votes, updated_data["staff_votes"])
+        self.assertEqual(candidate.position, updated_data["position"])
 
     def test_update_candidate_as_regular_user_other_election(self):
         candidate = CandidateFactory()
@@ -686,7 +702,7 @@ class CandidateLogViewSetTest(TestCase):
         data = {'person': self.person.ci, 'election_id': self.election.id, 'biography': 'New Biography',
                 'who_added': 'elector', 'staff_votes': 10, 'president_votes': 10, 'position': 'New Position'}
         response = self.client.post('/api/elections/candidate-log/', data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_candidate_log_as_superuser(self):
         self.client.force_authenticate(user=self.superadmin_user)
@@ -699,9 +715,9 @@ class CandidateLogViewSetTest(TestCase):
         }
         headers = {'content-type': 'application/json'}
         response = self.client.patch(f'/api/elections/candidate-log/{self.candidate_log.id}/', data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_candidate_log_as_superuser(self):
         self.client.force_authenticate(user=self.superadmin_user)
         response = self.client.delete(f'/api/elections/candidate-log/{self.candidate_log.id}/')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

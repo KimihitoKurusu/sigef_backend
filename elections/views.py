@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from .permissions import IsCandidateManagerOrReadOnly
+from .permissions import IsCandidateManagerOrReadOnly, IsReadOnly
 from .permissions import IsSuperUserOrReadOnly
 from .serializers import *
 
@@ -55,6 +55,7 @@ class CandidateViewSet(viewsets.ModelViewSet):
     permission_classes = [IsCandidateManagerOrReadOnly]
 
 
+
 class ElectorRegistryViewSet(viewsets.ModelViewSet):
     queryset = ElectorRegistry.objects.all()
     serializer_class = ElectorRegistrySerializer
@@ -90,3 +91,4 @@ class ElectorRegistryViewSet(viewsets.ModelViewSet):
 class CandidateLogViewSet(viewsets.ModelViewSet):
     queryset = CandidateLog.objects.all()
     serializer_class = CandidateLogSerializer
+    permission_classes = [IsReadOnly]
