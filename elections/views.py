@@ -1,14 +1,11 @@
-from django.urls import reverse
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.test import APIClient
 
 from .permissions import IsCandidateManagerOrReadOnly
 from .permissions import IsSuperUserOrReadOnly
 from .serializers import *
-from user_management.models import CustomUser
 
 
 class InstitutionViewSet(viewsets.ModelViewSet):
@@ -62,53 +59,18 @@ class ElectorRegistryViewSet(viewsets.ModelViewSet):
     serializer_class = ElectorRegistrySerializer
 
     def create(self, request, *args, **kwargs):
-        admin = CustomUser.objects.get(is_superuser = True)
-        try:
-            admin = admin.first()
-        except Exception:
-            print("There's only one superuser.")
+        candidates = Candidate.objects.filter(pk__in=request.data['candidates'].keys())
+        elector = Person.objects.get(ci=request.data['elector']['ci'])
+        election = Election.objects.get(pk=request.data['elector']['election_id'])
 
-        superuser=APIClient()
-        superuser.force_authenticate(user=admin)
+        for candidate in candidates:
+            votes = request.data['candidates'][str(candidate.pk)]
+            candidate.staff_votes += 1 if votes['staff_votes'] else 0
+            candidate.president_votes += 1 if votes['president_votes'] else 0
 
-        # Json sample to be recieved in request
-        data = {
-            'elector': {
-                'ci': '95112740402',
-                'election_id': 1
-            },
-            'candidates': {
-                '12345678901': {
-                    'staff_votes': True,
-                    'president_votes': False
-                },
-                '09876543219': {
-                    'staff_votes': True,
-                    'president_votes': True
-                },
-                '95112740402': {
-                    'staff_votes': True,
-                    'president_votes': False
-                }
-            }
-        }
+        Candidate.objects.bulk_update(candidates, ['staff_votes', 'president_votes'])
 
-        for candidate_ci, votes in request.data['candidates']:
-            # Getting the Candidate's staff votes and changing them if necessary
-            staff = Candidate.objects.get(pk=candidate_ci).staff_votes
-            staff = staff + 1 if votes['staff_votes'] else staff
-            votes['staff_votes'] = staff
-            # Getting the Candidate's president votes and changing them if necessary
-            president = Candidate.objects.get(pk=candidate_ci).president_votes
-            president = president + 1 if votes['president_votes'] else president
-            votes['president_votes'] = president
-            # Force updating the vote changes on the Candidate
-            url = reverse('candidate-detail', args=[candidate_ci])
-            admin.patch(url, votes, format='json')
+        new_registry = ElectorRegistry(ci=elector, election_id=election)
+        new_registry.save()
 
-        # Refactoring the request content to register the vote
-        model_request = request
-        model_request.data = request.data['elector']
-
-        # Using the original method to register the vote
-        return super.create(self, model_request, *args, **kwargs)
+        return Response({'message': 'Voting successfully completed!!!'}, status=status.HTTP_201_CREATED)

@@ -15,6 +15,7 @@ drf-yasg = "*"
 pytest-django = "*"
 pyjwt = "*"
 factory-boy = "*"
+pytest-html = "*"
 
 [dev-packages]
 
