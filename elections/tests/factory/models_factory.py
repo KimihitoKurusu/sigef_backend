@@ -62,8 +62,8 @@ class CandidateFactory(DjangoModelFactory):
     election_id = factory.SubFactory(ElectionFactory)
     biography = factory.Faker('paragraph')
     who_added = factory.Faker('random_element', elements=['committee', 'elector'])
-    staff_votes = factory.Faker('random_int', min=0, max=100)
-    president_votes = factory.Faker('random_int', min=0, max=100)
+    staff_votes = 0
+    president_votes = 0
     position = factory.Faker('job')
 
 

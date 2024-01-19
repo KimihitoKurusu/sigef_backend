@@ -562,14 +562,33 @@ class ElectorRegistryViewSetTest(TestCase):
         # Crea instancias necesarias (puedes usar factories para esto)
         person = PersonFactory()
         election = ElectionFactory()
+        candidate_0 = CandidateFactory()
+        candidate_1 = CandidateFactory()
+        candidate_2 = CandidateFactory()
 
         data = {
-            'ci': person.ci,
-            'election_id': election.id,
+            'elector': {
+                'ci': person.ci,
+                'election_id': election.id
+            },
+            'candidates': {
+                candidate_0.person.ci: {
+                    'staff_votes': True,
+                    'president_votes': False
+                },
+                candidate_1.person.ci: {
+                    'staff_votes': True,
+                    'president_votes': True
+                },
+                candidate_2.person.ci: {
+                    'staff_votes': True,
+                    'president_votes': False
+                }
+            }
         }
 
         url = reverse('electorregistry-list')
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, format='json')
 
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -577,6 +596,13 @@ class ElectorRegistryViewSetTest(TestCase):
         elector_registry = ElectorRegistry.objects.first()
         assert elector_registry.ci == person
         assert elector_registry.election_id == election
+        candidate_0.refresh_from_db()
+        candidate_1.refresh_from_db()
+        candidate_2.refresh_from_db()
+        assert candidate_0.staff_votes == 1
+        assert candidate_1.staff_votes == 1
+        assert candidate_1.president_votes == 1
+        assert candidate_2.staff_votes == 1
 
     def test_retrieve_elector_registry(self):
         elector_registry = ElectorRegistry.objects.create(ci=self.person, election_id=self.election)

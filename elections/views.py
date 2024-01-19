@@ -1,11 +1,14 @@
+from django.urls import reverse
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.test import APIClient
 
 from .permissions import IsCandidateManagerOrReadOnly
 from .permissions import IsSuperUserOrReadOnly
 from .serializers import *
+from user_management.models import CustomUser
 
 
 class InstitutionViewSet(viewsets.ModelViewSet):
@@ -58,16 +61,54 @@ class ElectorRegistryViewSet(viewsets.ModelViewSet):
     queryset = ElectorRegistry.objects.all()
     serializer_class = ElectorRegistrySerializer
 
-    @action(detail=True, methods=['post'])
-    def vote(self, request, pk=None):
-        elector_registry = self.get_object()
-        # Aquí debes agregar la lógica para manejar la votación
-        # Puedes acceder a la instancia del ElectorRegistry mediante 'elector_registry'
-        # y al cuerpo de la solicitud mediante 'request.data'
+    def create(self, request, *args, **kwargs):
+        admin = CustomUser.objects.get(is_superuser = True)
+        try:
+            admin = admin.first()
+        except Exception:
+            print("There's only one superuser.")
 
-        # Por ejemplo, puedes actualizar el modelo y guardar los cambios
-        # elector_registry.voted = True
-        # elector_registry.save()
+        superuser=APIClient()
+        superuser.force_authenticate(user=admin)
 
-        # Retorna una respuesta adecuada según tus necesidades
-        return Response({'message': 'Votación realizada con éxito'}, status=status.HTTP_200_OK)
+        # Json sample to be recieved in request
+        data = {
+            'elector': {
+                'ci': '95112740402',
+                'election_id': 1
+            },
+            'candidates': {
+                '12345678901': {
+                    'staff_votes': True,
+                    'president_votes': False
+                },
+                '09876543219': {
+                    'staff_votes': True,
+                    'president_votes': True
+                },
+                '95112740402': {
+                    'staff_votes': True,
+                    'president_votes': False
+                }
+            }
+        }
+
+        for candidate_ci, votes in request.data['candidates']:
+            # Getting the Candidate's staff votes and changing them if necessary
+            staff = Candidate.objects.get(pk=candidate_ci).staff_votes
+            staff = staff + 1 if votes['staff_votes'] else staff
+            votes['staff_votes'] = staff
+            # Getting the Candidate's president votes and changing them if necessary
+            president = Candidate.objects.get(pk=candidate_ci).president_votes
+            president = president + 1 if votes['president_votes'] else president
+            votes['president_votes'] = president
+            # Force updating the vote changes on the Candidate
+            url = reverse('candidate-detail', args=[candidate_ci])
+            admin.patch(url, votes, format='json')
+
+        # Refactoring the request content to register the vote
+        model_request = request
+        model_request.data = request.data['elector']
+
+        # Using the original method to register the vote
+        return super.create(self, model_request, *args, **kwargs)
