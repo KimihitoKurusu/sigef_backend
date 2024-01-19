@@ -30,6 +30,7 @@ router.register(r'people', PersonViewSet)
 router.register(r'elections', ElectionViewSet)
 router.register(r'candidates', CandidateViewSet)
 router.register(r'elector-registries', ElectorRegistryViewSet)
+router.register(r'candidate-log', CandidateLogViewSet)
 
 urlpatterns = [
     path('elections/', include(router.urls)),

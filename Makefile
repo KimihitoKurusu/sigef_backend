@@ -48,6 +48,9 @@ test:
 	docker-compose -f docker-compose.test.yml -p sigef_backend_test run --rm web pytest $(arg)
 	docker-compose -f docker-compose.test.yml -p sigef_backend_test down
 
+test-build:
+	docker-compose -f docker-compose.test.yml -p sigef_backend_test build
+
 test-fast:
 	docker-compose -f docker-compose.test.yml -p sigef_backend_test run --rm web pytest -vv --no-migrations --html=report.html --self-contained-html $(arg)
 

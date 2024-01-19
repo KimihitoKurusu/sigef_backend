@@ -74,3 +74,8 @@ class ElectorRegistryViewSet(viewsets.ModelViewSet):
         new_registry.save()
 
         return Response({'message': 'Voting successfully completed!!!'}, status=status.HTTP_201_CREATED)
+
+
+class CandidateLogViewSet(viewsets.ModelViewSet):
+    queryset = CandidateLog.objects.all()
+    serializer_class = CandidateLogSerializer

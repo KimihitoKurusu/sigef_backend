@@ -61,3 +61,8 @@ class ElectorRegistrySerializer(serializers.ModelSerializer):
         model = ElectorRegistry
         fields = '__all__'
 
+
+class CandidateLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CandidateLog
+        fields = '__all__'

@@ -35,7 +35,7 @@ class Person(models.Model):
     faculty_id = models.ForeignKey(Faculty, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return self.name + ' ' + self.last_name
+        return f'{self.name} {self.last_name}'
 
 
 class Election(models.Model):
@@ -81,7 +81,7 @@ class Candidate(models.Model):
     position = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f'{self.person.name} {self.person.last_name}'
+        return f'{Person.objects.get(pk=self.ci).__str__()}, candidato a {Election.objects.get(pk=self.election_id).__str__()}'
 
 
 class ElectorRegistry(models.Model):
@@ -95,4 +95,26 @@ class ElectorRegistry(models.Model):
         ]
 
     def __str__(self):
-        return Person.objects.get(pk=self.ci).__str__() + ' ' + Election.objects.get(pk=self.election_id).__str__()
+        return f'{Person.objects.get(pk=self.ci).__str__()} votó en {Election.objects.get(pk=self.election_id).__str__()}'
+
+
+class CandidateLog(models.Model):
+    WHO_ADDED_CHOICES = [
+        ('committee', 'Comité'),
+        ('elector', 'Elector'),
+    ]
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='candidate_log', default=None)
+    election_id = models.ForeignKey(Election, on_delete=models.CASCADE)
+    biography = models.TextField(
+        verbose_name="Biografía",
+        blank=True,
+        null=True,
+        help_text="Introduzca la biografía del candidato.",
+    )
+    who_added = models.CharField(max_length=20, choices=WHO_ADDED_CHOICES)
+    staff_votes = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    president_votes = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    position = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f'{Person.objects.get(pk=self.ci).__str__()}, fue candidato a {Election.objects.get(pk=self.election_id).__str__()}'
