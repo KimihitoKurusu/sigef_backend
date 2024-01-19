@@ -605,6 +605,51 @@ class ElectorRegistryViewSetTest(TestCase):
         assert candidate_1.president_votes == 1
         assert candidate_2.staff_votes == 1
 
+    def test_create_elector_registry_with_invalid_token(self):
+        # Create an invalid token (for example, an expired token)
+        invalid_token = jwt.encode({'exp': 1}, config('SECRET_KEY'), algorithm='HS256')
+
+        url = reverse('electorregistry-list')
+        response = self.client.post(url, {'token': invalid_token}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_elector_registry_without_token(self):
+        # Create instances necessary for the test
+        person = PersonFactory()
+        election = ElectionFactory()
+        candidate_0 = CandidateFactory()
+        candidate_1 = CandidateFactory()
+        candidate_2 = CandidateFactory()
+
+        # Do not include 'token' in the request data
+        data_without_token = {
+            'elector': {
+                'ci': person.ci,
+                'election_id': election.id
+            },
+            'candidates': {
+                candidate_0.person.ci: {
+                    'staff_votes': True,
+                    'president_votes': False
+                },
+                candidate_1.person.ci: {
+                    'staff_votes': True,
+                    'president_votes': True
+                },
+                candidate_2.person.ci: {
+                    'staff_votes': True,
+                    'president_votes': False
+                }
+            }
+        }
+
+        url = reverse('electorregistry-list')
+        response = self.client.post(url, data_without_token, format='json')
+
+        # Assert that the response status is HTTP 400 Bad Request
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_retrieve_elector_registry(self):
         elector_registry = ElectorRegistry.objects.create(ci=self.person, election_id=self.election)
 

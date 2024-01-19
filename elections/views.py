@@ -60,8 +60,16 @@ class ElectorRegistryViewSet(viewsets.ModelViewSet):
     serializer_class = ElectorRegistrySerializer
 
     def create(self, request, *args, **kwargs):
-        print('AAAAAAAAAAAAAAAAAAAA', request.data['token'])
-        data = jwt.decode(request.data['token'], config('SECRET_KEY'), algorithms=['HS256'])
+        if 'token' not in request.data:
+            return Response({'error': 'Token not provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            data = jwt.decode(request.data['token'], config('SECRET_KEY'), algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token has expired'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+
         candidates = Candidate.objects.filter(pk__in=data['candidates'].keys())
         elector = Person.objects.get(ci=data['elector']['ci'])
         election = Election.objects.get(pk=data['elector']['election_id'])
